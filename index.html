@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文件转换 - 免费在线格式转换（本地转换，不上传）</title>
+<meta name="description" content="免费文件格式转换：PDF转图片、Word转图片、图片互转、文本/CSV/JSON互转。全部在浏览器本地完成，文件不上传服务器。">
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d21; --muted:#6b7280;
+    --line:#e5e7eb; --accent:#2563eb; --accent-dark:#1d4ed8;
+    --green:#16a34a; --red:#dc2626; --amber:#d97706;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,"Segoe UI",sans-serif;
+    line-height:1.6;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:20px 16px 64px}
+  header{text-align:center;padding:28px 8px 8px}
+  header h1{margin:0;font-size:30px;letter-spacing:.5px}
+  header h1 span{color:var(--accent)}
+  header p{margin:8px 0 0;color:var(--muted);font-size:15px}
+  .badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+  .badge{background:#e8eefc;color:#1e40af;border:1px solid #c7d6f8;
+    font-size:12.5px;padding:3px 10px;border-radius:999px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px;margin-top:16px}
+  .card h2{margin:0 0 10px;font-size:17px}
+  .card h2 small{color:var(--muted);font-weight:400;font-size:13px;margin-left:6px}
+  /* 拖放区 */
+  #dropzone{
+    border:2px dashed #b6c2d2;border-radius:var(--radius);
+    padding:38px 16px;text-align:center;cursor:pointer;
+    transition:border-color .15s,background .15s;background:#fbfcfe;
+  }
+  #dropzone:hover,#dropzone.dragover{border-color:var(--accent);background:#eff4ff}
+  #dropzone .big{font-size:19px;font-weight:600}
+  #dropzone .sub{color:var(--muted);font-size:13.5px;margin-top:6px}
+  #dropzone .pick{display:inline-block;margin-top:14px;background:var(--accent);color:#fff;
+    padding:9px 22px;border-radius:9px;font-size:15px}
+  #dropzone .hint{margin-top:12px;font-size:12.5px;color:var(--muted)}
+  /* 选项 */
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .opts label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+  .opts select,.opts input[type=range]{width:100%}
+  .opts select{padding:8px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff}
+  .opt-val{font-size:13px;color:var(--ink)}
+  /* 文件列表 */
+  .file-item{display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+    border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px;background:#fff}
+  .file-item .fname{font-weight:600;word-break:break-all;flex:1 1 220px}
+  .file-item .fmeta{color:var(--muted);font-size:12.5px;white-space:nowrap}
+  .file-item select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;max-width:100%}
+  .file-item .st{font-size:12.5px;color:var(--muted)}
+  .file-item .st.ok{color:var(--green)}
+  .file-item .st.err{color:var(--red)}
+  .file-item .st.run{color:var(--accent)}
+  .empty{color:var(--muted);font-size:14px;padding:6px 2px}
+  /* 按钮 */
+  .btn{border:0;border-radius:9px;padding:10px 18px;font-size:15px;cursor:pointer;
+    background:var(--accent);color:#fff}
+  .btn:hover{background:var(--accent-dark)}
+  .btn:disabled{background:#9ca3af;cursor:not-allowed}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .btn.ghost:hover{background:#f3f4f6}
+  .btn.small{padding:6px 12px;font-size:13.5px}
+  .btn.green{background:var(--green)}
+  .btn.green:hover{background:#15803d}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  /* 结果 */
+  .res-item{display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+    border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px;background:#fff}
+  .res-item .rname{font-weight:600;word-break:break-all;flex:1 1 220px}
+  .res-item .rmeta{color:var(--muted);font-size:12.5px;white-space:nowrap}
+  #status{margin-top:12px;font-size:13.5px;color:var(--muted);min-height:1.4em;word-break:break-word}
+  #status.err{color:var(--red)}
+  #libStatus{font-size:12.5px;color:var(--muted);margin-top:8px;word-break:break-word}
+  /* 说明 */
+  .notes{font-size:14px;color:#374151}
+  .notes li{margin:6px 0}
+  .notes b{color:var(--ink)}
+  .fmt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
+  .fmt{background:#f9fafb;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13.5px}
+  .fmt b{display:block;font-size:13.5px}
+  .fmt span{color:var(--muted);font-size:12.5px}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:28px}
+  @media (max-width:600px){
+    header h1{font-size:24px}
+    .opts{grid-template-columns:1fr}
+    .wrap{padding:14px 12px 48px}
+    #dropzone{padding:28px 12px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>文件<span>转换</span></h1>
+    <p>拖进来就能转 · 免费 · 不限次数 · 文件不上传服务器</p>
+    <div class="badges">
+      <span class="badge">本地转换</span>
+      <span class="badge">无需注册</span>
+      <span class="badge">批量转换</span>
+      <span class="badge">手机电脑都能用</span>
+    </div>
+  </header>
+
+  <!-- 拖放区 -->
+  <div class="card">
+    <div id="dropzone" tabindex="0" role="button" aria-label="选择文件">
+      <div class="big">把文件拖到这里</div>
+      <div class="sub">支持 PDF / Word(.docx) / 图片 / 文本 / CSV / JSON 等，可一次拖多个文件，也支持 Ctrl+V 粘贴</div>
+      <span class="pick">选择文件</span>
+      <div class="hint">文件只在你的浏览器里处理，不会上传到任何服务器</div>
+    </div>
+    <input type="file" id="fileInput" multiple hidden>
+    <div id="status" aria-live="polite"></div>
+    <div id="libStatus"></div>
+  </div>
+
+  <!-- 转换设置 -->
+  <div class="card">
+    <h2>转换设置</h2>
+    <div class="opts">
+      <div>
+        <label for="quality">图片质量（JPG / WebP）<span class="opt-val" id="qualityVal">90%</span></label>
+        <input type="range" id="quality" min="50" max="100" value="90">
+      </div>
+      <div>
+        <label for="pdfScale">PDF / Word 转图片清晰度</label>
+        <select id="pdfScale">
+          <option value="1">普通（1x，文件小）</option>
+          <option value="1.5">清晰（1.5x）</option>
+          <option value="2" selected>高清（2x，推荐）</option>
+          <option value="3">超清（3x，文件大）</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 待转换文件 -->
+  <div class="card">
+    <h2>待转换文件 <small id="fileCount"></small></h2>
+    <div id="fileList"><div class="empty">还没有添加文件。拖入文件或点击上方区域选择。</div></div>
+    <div class="actions">
+      <button class="btn" id="convertAllBtn" disabled>全部转换</button>
+      <button class="btn ghost" id="clearFilesBtn" disabled>清空文件</button>
+    </div>
+  </div>
+
+  <!-- 转换结果 -->
+  <div class="card">
+    <h2>转换结果 <small id="resultCount"></small></h2>
+    <div id="resultList"><div class="empty">转换完成后，结果会出现在这里，可以逐个下载，也可以一键打包。</div></div>
+    <div class="actions">
+      <button class="btn green" id="downloadAllBtn" disabled>下载全部（打包 ZIP）</button>
+      <button class="btn ghost" id="clearResultsBtn" disabled>清空结果</button>
+    </div>
+  </div>
+
+  <!-- 支持的格式 -->
+  <div class="card">
+    <h2>支持的转换</h2>
+    <div class="fmt-grid">
+      <div class="fmt"><b>PDF</b><span>→ PNG / JPG 图片、→ TXT 文本</span></div>
+      <div class="fmt"><b>Word (.docx)</b><span>→ PNG 图片、→ PDF、→ HTML、→ TXT</span></div>
+      <div class="fmt"><b>图片</b><span>PNG / JPG / WebP / BMP / GIF 互转、→ PDF</span></div>
+      <div class="fmt"><b>文本 / Markdown</b><span>→ PNG 图片、→ PDF、→ DOS 格式</span></div>
+      <div class="fmt"><b>CSV ↔ JSON</b><span>表格与 JSON 数据互转</span></div>
+      <div class="fmt"><b>任意文件</b><span>→ ZIP 打包、→ Base64 文本</span></div>
+    </div>
+  </div>
+
+  <!--  honest notes -->
+  <div class="card notes">
+    <h2>使用说明（请先看）</h2>
+    <ul>
+      <li><b>隐私：</b>所有转换都在你的浏览器里完成，文件不会上传到任何服务器，关掉页面就什么都不剩。</li>
+      <li><b>老版 Word（.doc）：</b>浏览器无法解析 .doc 这种老二进制格式。请先用 Word / WPS 打开，另存为 .docx 后再来转换。</li>
+      <li><b>速度：</b>转换速度取决于你的设备性能和文件大小，与网速无关；大文件、页数多的 PDF 请耐心等一会儿。</li>
+      <li><b>中文 PDF：</b>文本、Word 转 PDF 是按渲染后的页面图片生成的，PDF 里的文字不可选中复制，图片本身是清晰的。</li>
+      <li><b>组件来源：</b>转换组件按需从国内 BootCDN 加载，失败时自动切换 jsDelivr 备用源；整个页面不依赖谷歌等境外服务。</li>
+      <li><b>图片转 PDF：</b>每张图片单独生成一个 PDF 文件。</li>
+    </ul>
+  </div>
+
+  <footer>文件转换 · 免费工具 · 本地处理，不上传</footer>
+</div>
+
+<!-- 隐藏渲染容器：Word 转图片/转 PDF 时使用 -->
+<div id="renderHost" style="position:fixed;left:-10000px;top:0;width:794px;visibility:hidden;" aria-hidden="true"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
